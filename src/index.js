@@ -61,13 +61,22 @@ class Game extends React.Component {
             super();
             this.state = {
                 history: [ { squares: Array( 9 ).fill( null ), } ],
-                player: Math.round( Math.random() ),
+                player: 1,
+                stepNumber: 0
             }
+        }
+
+    jumpTo( step )
+        {
+            this.setState( {
+                stepNumber: step,
+                player: (step % 2) ? 0 : 1,
+            } );
         }
 
     handleClick( i )
         {
-            const history = this.state.history;
+            const history = this.state.history.slice( 0, this.state.stepNumber + 1 );
             const current = history[ history.length - 1 ];
             const squares = current.squares.slice();
             if ( calculateWinner( squares ) || squares[ i ] )
@@ -75,18 +84,28 @@ class Game extends React.Component {
                     return;
                 }
             squares[ i ] = this.symbols[ this.state.player ];
+
             const player = this.state.player > 0 ? 0 : 1;
             this.setState( {
                 history: history.concat( [ { squares: squares } ] ),
-                player: player
+                player: player,
+                stepNumber: history.length
             } );
         }
 
     render()
         {
             const history = this.state.history;
-            const current = history[ history.length - 1 ];
+            const current = history[ this.state.stepNumber ];
             const winner = calculateWinner( current.squares );
+
+            const moves = history.map( ( step, move ) =>
+            {
+                const desc = move ? 'Move #' + move : 'Game Start';
+                return <li key={move}>
+                    <a href="#" onClick={() => this.jumpTo( move )}> {desc}</a>
+                </li>
+            } );
 
             let status;
             if ( winner )
@@ -106,7 +125,7 @@ class Game extends React.Component {
                     </div>
                     <div className="game-info">
                         <div>{status }</div>
-                        <ol>{/* TODO */}</ol>
+                        <ol>{moves}</ol>
                     </div>
                 </div>
             );
